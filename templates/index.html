@@ -1,21 +1,136 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <style>body { background:#121212; color:white; }</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Lucas TV Sports</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { 
+            background-color: #0d1117; 
+            color: #c9d1d9; 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif; 
+            padding-bottom: 50px;
+        }
+        header { 
+            padding: 20px 0; 
+            text-align: center; 
+            background: #161b22;
+            border-bottom: 1px solid #30363d;
+            margin-bottom: 20px;
+        }
+        .search-container {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: #0d1117;
+            padding: 10px 0;
+            margin-bottom: 20px;
+        }
+        #searchInput {
+            background-color: #0d1117;
+            border: 1px solid #30363d;
+            color: white;
+            border-radius: 20px;
+            padding: 10px 20px;
+        }
+        #searchInput:focus {
+            border-color: #58a6ff;
+            box-shadow: 0 0 0 3px rgba(88, 166, 255, 0.3);
+        }
+        .match-card { 
+            background-color: #161b22; 
+            border: 1px solid #30363d; 
+            border-radius: 12px; 
+            margin-bottom: 15px; 
+            transition: transform 0.2s;
+        }
+        .match-header { 
+            background-color: #21262d; 
+            padding: 10px 15px; 
+            border-bottom: 1px solid #30363d;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 12px 12px 0 0;
+        }
+        .match-title { font-weight: 600; color: #58a6ff; margin: 0; }
+        .match-time { font-size: 0.8rem; color: #8b949e; border: 1px solid #30363d; padding: 2px 8px; border-radius: 10px; }
+        .channel-list { padding: 12px; display: flex; flex-wrap: wrap; gap: 8px; }
+        .btn-stream { 
+            background-color: #238636; 
+            color: white; 
+            border: none; 
+            padding: 6px 14px; 
+            border-radius: 6px; 
+            text-decoration: none; 
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        .btn-stream:hover { background-color: #2ea043; color: white; }
+        .no-results { display: none; text-align: center; padding: 40px; color: #8b949e; }
+    </style>
 </head>
-<body class="p-4">
-    <nav class="mb-4"><a href="/" class="btn btn-primary">Canales</a> <a href="/admin_users" class="btn btn-secondary">Usuarios</a></nav>
-    <h3>Agregar Canal</h3>
-    <form action="/add_stream" method="POST" class="row g-2 mb-4">
-        <div class="col-3"><input name="name" class="form-control" placeholder="Nombre"></div>
-        <div class="col-7"><input name="url" class="form-control" placeholder="URL PelotaLibre"></div>
-        <div class="col-2"><button class="btn btn-success w-100">Agregar</button></div>
-    </form>
-    <table class="table table-dark">
-        {% for s in streams %}
-        <tr><td>{{s.name}}</td><td><a href="/watch/{{s.id}}" class="btn btn-sm btn-info">Ver</a></td></tr>
-        {% endfor %}
-    </table>
+<body>
+
+    <header>
+        <h1 class="h3 mb-0 text-white">Lucas<span class="text-primary">TV</span> Live</h1>
+    </header>
+
+    <div class="container">
+        <div class="search-container">
+            <input type="text" id="searchInput" class="form-control" placeholder="Buscar equipo o competición...">
+        </div>
+
+        <div id="eventList">
+            {% if eventos %}
+                {% for ev in eventos %}
+                <div class="match-card">
+                    <div class="match-header">
+                        <h6 class="match-title">{{ ev.title }}</h6>
+                        <span class="match-time">{{ ev.time }}</span>
+                    </div>
+                    <div class="channel-list">
+                        {% for cap in ev.options %}
+                        <a href="/watch?url={{ cap.url|urlencode }}&title={{ ev.title|urlencode }} ({{ cap.name|urlencode }})" class="btn-stream">
+                            {{ cap.name }}
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="text-center p-5">
+                    <p>No se cargaron eventos. Probá refrescando.</p>
+                    <a href="/" class="btn btn-outline-primary btn-sm">Refrescar Agenda</a>
+                </div>
+            {% endif %}
+        </div>
+
+        <div id="noResults" class="no-results">
+            <p>No se encontraron partidos que coincidan con tu búsqueda.</p>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('searchInput').addEventListener('keyup', function() {
+            let filter = this.value.toLowerCase();
+            let cards = document.querySelectorAll('.match-card');
+            let hasResults = false;
+
+            cards.forEach(card => {
+                let title = card.querySelector('.match-title').innerText.toLowerCase();
+                if (title.includes(filter)) {
+                    card.style.display = "";
+                    hasResults = true;
+                } else {
+                    card.style.display = "none";
+                }
+            });
+
+            document.getElementById('noResults').style.display = hasResults ? "none" : "block";
+        });
+    </script>
+
 </body>
 </html>
