@@ -13,16 +13,16 @@ def index():
 def watch():
     canal_url = request.args.get('url')
     title = request.args.get('title', 'Evento en Vivo')
-    
+
     if not canal_url:
         print("[!] ERROR: Se recibió una petición /watch sin URL")
         return "URL no válida", 400
 
     print(f"[*] Resolviendo stream para: {title}")
     print(f"[*] URL a procesar: {canal_url}")
-    
+
     stream_url = scraper.resolve_stream(canal_url)
-    
+
     if stream_url:
         return render_template('player.html', stream_url=stream_url, title=title)
     else:
